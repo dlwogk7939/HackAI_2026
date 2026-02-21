@@ -1,0 +1,36 @@
+# OS
+.DS_Store
+
+# Python cache/build
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+open_ended/venv311/
+
+# Logs
+*.log
+
+# Media
+*.mp4
+*.jpeg
+*.jpg
+
+# Generated outputs
+open_ended/data/
+open_ended/models/
+open_ended/models_words/
+open_ended/reports/
+
+# Large local datasets / media
+open_ended/dataset/alphabet/
+open_ended/dataset/words/videos/
+open_ended/dataset/words/training/

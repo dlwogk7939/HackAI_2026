@@ -1,0 +1,14 @@
+# Core numerics
+numpy
+
+# CV / hand landmarks
+opencv-python
+mediapipe==0.10.9
+
+# Data + ML
+pandas
+scikit-learn
+joblib
+
+# Evaluation plots
+matplotlib
