@@ -1,4 +1,4 @@
-#!/Users/dlwogk7939/Documents/GitHub/HackAI_2026/open_ended/venv311/bin/python
+#!/Users/dlwogk7939/Documents/GitHub/HackAI_2026/venv311/bin/python3.11
 # -*- coding: utf-8 -*-
 import re
 import sys
