@@ -46,10 +46,10 @@ def parse_args() -> argparse.Namespace:
         help="Target sampling FPS from video.",
     )
     parser.add_argument(
-        "--min_detected_frames",
-        type=int,
-        default=10,
-        help="Minimum valid detected frames required to keep a sample.",
+        "--min_detected_ratio",
+        type=float,
+        default=0.8,
+        help="Minimum detected_any/total_frames ratio required to keep a sample.",
     )
     parser.add_argument(
         "--resize",
@@ -79,6 +79,11 @@ def parse_args() -> argparse.Namespace:
         choices=["mean", "seg3"],
         default="seg3",
         help="Temporal pooling mode.",
+    )
+    parser.add_argument(
+        "--debug_detect",
+        action="store_true",
+        help="Print per-video detection summary and write detect report CSV.",
     )
     return parser.parse_args()
 
@@ -164,6 +169,40 @@ def resolve_video_path(video_path_raw: str, manifest_path: Path) -> Path:
     return path
 
 
+def longest_true_run(flags: list[bool]) -> int:
+    best = 0
+    cur = 0
+    for flag in flags:
+        if flag:
+            cur += 1
+            if cur > best:
+                best = cur
+        else:
+            cur = 0
+    return best
+
+
+def split_three_counts(flags: list[bool]) -> list[int]:
+    n = len(flags)
+    if n == 0:
+        return [0, 0, 0]
+    if n == 1:
+        return [int(flags[0]), 0, 0]
+    if n == 2:
+        return [int(flags[0]), int(flags[1]), 0]
+
+    b1 = n // 3
+    b2 = (2 * n) // 3
+    b1 = max(1, min(b1, n - 2))
+    b2 = max(b1 + 1, min(b2, n - 1))
+
+    return [
+        int(sum(flags[:b1])),
+        int(sum(flags[b1:b2])),
+        int(sum(flags[b2:])),
+    ]
+
+
 def process_video_row(
     row: dict[str, str],
     manifest_path: Path,
@@ -171,14 +210,35 @@ def process_video_row(
     expected_dim: int,
     max_frames: int,
     sample_fps: float,
-    min_detected_frames: int,
+    min_detected_ratio: float,
+    pool_mode: str,
     resize: int | None,
     two_hands: bool,
-) -> tuple[str, list[np.ndarray] | None, int]:
+) -> tuple[str, list[np.ndarray] | None, int, dict[str, object]]:
     video_path = resolve_video_path(str(row.get("video_path", "")).strip(), manifest_path)
+    debug_row: dict[str, object] = {
+        "label": str(row.get("label_gloss", "")),
+        "video_path": str(video_path),
+        "total_frames": 0,
+        "detected_any": 0,
+        "detected_both": 0,
+        "seg1_any": 0,
+        "seg2_any": 0,
+        "seg3_any": 0,
+        "seg1_both": 0,
+        "seg2_both": 0,
+        "seg3_both": 0,
+        "longest_run_any": 0,
+        "longest_run_both": 0,
+        "keep_or_skip": "skip",
+        "skip_reason": "other:decode_failure",
+        "threshold_total": float(min_detected_ratio),
+        "threshold_seg": "NA",
+    }
+
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
-        return "decode_fail", None, 0
+        return "decode_fail", None, 0, debug_row
 
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     frame_start = parse_int(row.get("frame_start"), 0)
@@ -195,7 +255,7 @@ def process_video_row(
 
     if frame_end < frame_start:
         cap.release()
-        return "decode_fail", None, 0
+        return "decode_fail", None, 0, debug_row
 
     fps_manifest = parse_float(row.get("fps"), 0.0)
     fps_cap = float(cap.get(cv2.CAP_PROP_FPS))
@@ -206,6 +266,8 @@ def process_video_row(
 
     feats: list[np.ndarray] = []
     decoded_any = False
+    any_flags: list[bool] = []
+    both_flags: list[bool] = []
 
     for frame_idx in range(frame_start, frame_end + 1, step):
         if len(feats) >= max_frames:
@@ -226,6 +288,10 @@ def process_video_row(
 
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         result = hands.process(rgb)
+        detected_hands = len(result.multi_hand_landmarks or [])
+        any_flags.append(detected_hands >= 1)
+        both_flags.append(detected_hands >= 2)
+
         feat = frame_feature_two_hands(result) if two_hands else frame_feature_one_hand(result)
         if feat is None:
             continue
@@ -238,12 +304,39 @@ def process_video_row(
 
     cap.release()
 
-    if not decoded_any:
-        return "decode_fail", None, 0
-    if len(feats) < min_detected_frames:
-        return "low_detected", None, len(feats)
+    seg_any = split_three_counts(any_flags)
+    seg_both = split_three_counts(both_flags)
+    debug_row["total_frames"] = int(len(any_flags))
+    debug_row["detected_any"] = int(sum(any_flags))
+    debug_row["detected_both"] = int(sum(both_flags))
+    debug_row["seg1_any"] = seg_any[0]
+    debug_row["seg2_any"] = seg_any[1]
+    debug_row["seg3_any"] = seg_any[2]
+    debug_row["seg1_both"] = seg_both[0]
+    debug_row["seg2_both"] = seg_both[1]
+    debug_row["seg3_both"] = seg_both[2]
+    debug_row["longest_run_any"] = longest_true_run(any_flags)
+    debug_row["longest_run_both"] = longest_true_run(both_flags)
 
-    return "ok", feats, len(feats)
+    if not decoded_any:
+        return "decode_fail", None, 0, debug_row
+    detected_any = int(sum(any_flags))
+    total_sampled = int(len(any_flags))
+    detected_ratio = (detected_any / total_sampled) if total_sampled > 0 else 0.0
+
+    if detected_ratio < min_detected_ratio:
+        debug_row["skip_reason"] = "total_detected_below_threshold"
+        return "low_detected", None, len(feats), debug_row
+    if pool_mode == "seg3" and len(feats) < 3:
+        debug_row["skip_reason"] = "segment_detected_below_threshold"
+        return "low_detected", None, len(feats), debug_row
+    if len(feats) == 0:
+        debug_row["skip_reason"] = "other:no_valid_features_after_normalization"
+        return "low_detected", None, 0, debug_row
+
+    debug_row["keep_or_skip"] = "keep"
+    debug_row["skip_reason"] = ""
+    return "ok", feats, len(feats), debug_row
 
 
 def pool_feature_sequence(
@@ -307,8 +400,8 @@ def main() -> None:
         raise ValueError("--max_frames must be > 0.")
     if args.sample_fps <= 0:
         raise ValueError("--sample_fps must be > 0.")
-    if args.min_detected_frames <= 0:
-        raise ValueError("--min_detected_frames must be > 0.")
+    if not (0.0 <= args.min_detected_ratio <= 1.0):
+        raise ValueError("--min_detected_ratio must be in [0.0, 1.0].")
     if args.resize is not None and args.resize <= 0:
         raise ValueError("--resize must be > 0.")
 
@@ -328,6 +421,26 @@ def main() -> None:
         ["label_gloss", "class_index", "split", "video_id", "num_frames_used"]
         + [f"f{i}" for i in range(final_dim)]
     )
+    detect_report_path = args.out.parent / "detect_report_seg3_2h.csv"
+    detect_report_header = [
+        "label",
+        "video_path",
+        "total_frames",
+        "detected_any",
+        "detected_both",
+        "seg1_any",
+        "seg2_any",
+        "seg3_any",
+        "seg1_both",
+        "seg2_both",
+        "seg3_both",
+        "longest_run_any",
+        "longest_run_both",
+        "keep_or_skip",
+        "skip_reason",
+        "threshold_total",
+        "threshold_seg",
+    ]
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
 
@@ -337,6 +450,7 @@ def main() -> None:
     skipped_low = 0
     kept_per_label: Counter[str] = Counter()
     warn_state = {"seg3_small_warned": False}
+    detect_report_rows: list[dict[str, object]] = []
 
     with mp.solutions.hands.Hands(
         static_image_mode=False,
@@ -348,17 +462,34 @@ def main() -> None:
         writer.writerow(out_header)
 
         for row in rows:
-            status, frame_feats, used_frames = process_video_row(
+            status, frame_feats, used_frames, debug_row = process_video_row(
                 row=row,
                 manifest_path=args.manifest,
                 hands=hands,
                 expected_dim=expected_dim,
                 max_frames=args.max_frames,
                 sample_fps=args.sample_fps,
-                min_detected_frames=args.min_detected_frames,
+                min_detected_ratio=args.min_detected_ratio,
+                pool_mode=args.pool,
                 resize=args.resize,
                 two_hands=args.two_hands,
             )
+            detect_report_rows.append(debug_row)
+            if args.debug_detect:
+                print(
+                    "[DEBUG] "
+                    f"{debug_row['label']} {debug_row['video_path']} "
+                    f"total_frames={debug_row['total_frames']} "
+                    f"detected_any={debug_row['detected_any']} "
+                    f"detected_both={debug_row['detected_both']} "
+                    f"seg_counts_any=[{debug_row['seg1_any']},{debug_row['seg2_any']},{debug_row['seg3_any']}] "
+                    f"seg_counts_both=[{debug_row['seg1_both']},{debug_row['seg2_both']},{debug_row['seg3_both']}] "
+                    f"longest_run_any={debug_row['longest_run_any']} "
+                    f"longest_run_both={debug_row['longest_run_both']} "
+                    f"threshold_total={debug_row['threshold_total']} "
+                    f"threshold_seg={debug_row['threshold_seg']} "
+                    f"skip_reason={debug_row['skip_reason']}"
+                )
 
             if status == "decode_fail":
                 skipped_decode += 1
@@ -394,7 +525,14 @@ def main() -> None:
             kept_samples += 1
             kept_per_label[label] += 1
 
+    with detect_report_path.open("w", newline="", encoding="utf-8") as f_report:
+        writer = csv.DictWriter(f_report, fieldnames=detect_report_header)
+        writer.writeheader()
+        for report_row in detect_report_rows:
+            writer.writerow(report_row)
+
     print(f"Saved CSV: {args.out}")
+    print(f"Saved detect report: {detect_report_path}")
     print(f"Total manifest rows: {total_rows}")
     print(f"Kept samples written: {kept_samples}")
     print(f"Skipped due to decode failure: {skipped_decode}")

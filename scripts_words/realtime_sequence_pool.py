@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 import time
 from collections import Counter, deque
 from pathlib import Path
@@ -14,6 +15,24 @@ import numpy as np
 # Keep realtime compatible in environments where GPU context creation fails.
 os.environ.setdefault("MEDIAPIPE_DISABLE_GPU", "1")
 import mediapipe as mp
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+try:
+    from hackai.emotion import compute_emotion_from_facemesh
+except ModuleNotFoundError:
+    from emotion import compute_emotion_from_facemesh
+try:
+    from hackai.tts import speak_emotional
+except ModuleNotFoundError:
+    from tts import speak_emotional
+
+EMOTION_TARGET_FPS = 10.0
+SPEAK_COOLDOWN_SEC = 0.8
+SPEAK_STABLE_COUNT = 5
+FACE_DRAW_STEP = 2
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,7 +61,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--stride",
         type=int,
-        default=5,
+        default=3,
         help="Run inference every N captured frames.",
     )
     parser.add_argument(
@@ -54,7 +73,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--history",
         type=int,
-        default=10,
+        default=6,
         help="Prediction history length for majority vote.",
     )
     parser.add_argument(
@@ -70,26 +89,105 @@ def parse_args() -> argparse.Namespace:
         help="OpenCV camera index.",
     )
     parser.add_argument(
+        "--max_hands",
+        type=int,
+        default=2,
+        help="Maximum number of hands to detect for tracking/drawing (1 or 2).",
+    )
+    parser.add_argument(
         "--mirror",
         action="store_true",
         help="Mirror camera frame horizontally.",
     )
     parser.add_argument(
+        "--enable_emotion",
+        action="store_true",
+        help="Enable Face Mesh rule-based emotion classification and emotional TTS.",
+    )
+    parser.add_argument(
+        "--enable_tts",
+        dest="enable_tts",
+        action="store_true",
+        help="Enable macOS TTS (`say`) for stable label changes.",
+    )
+    parser.add_argument(
+        "--disable_tts",
+        dest="enable_tts",
+        action="store_false",
+        help="Disable TTS output.",
+    )
+    parser.add_argument(
+        "--tts_voice",
+        type=str,
+        default=None,
+        help="Optional macOS voice name for `say` (e.g., Yuna, Kyoko, Alex).",
+    )
+    parser.add_argument(
+        "--voice_dir",
+        type=Path,
+        default=Path("voice"),
+        help="Directory containing emotion voice clips (e.g., voice/happy/*.mp3).",
+    )
+    parser.add_argument(
         "--resize",
         type=int,
-        default=640,
+        default=1280,
         help="Resize frame width while keeping aspect ratio.",
     )
     parser.add_argument(
+        "--display_width",
+        type=int,
+        default=1400,
+        help="Display window width.",
+    )
+    parser.add_argument(
+        "--display_height",
+        type=int,
+        default=900,
+        help="Display window height.",
+    )
+    parser.add_argument(
+        "--fullscreen",
+        action="store_true",
+        help="OpenCV fullscreen display mode.",
+    )
+    parser.add_argument(
         "--two_hands",
+        dest="two_hands",
         action="store_true",
         help="Use left42+right42 per-frame features (84D frame-level).",
     )
     parser.add_argument(
+        "--one_hand",
+        dest="two_hands",
+        action="store_false",
+        help="Use one-hand per-frame features (42D frame-level).",
+    )
+    parser.add_argument(
         "--show_landmarks",
         action="store_true",
+        default=True,
         help="Draw detected hand landmarks.",
     )
+    parser.add_argument(
+        "--no_landmarks",
+        action="store_true",
+        help="Disable landmark drawing.",
+    )
+    parser.add_argument(
+        "--min_detection_confidence",
+        type=float,
+        default=0.35,
+        help="MediaPipe minimum detection confidence.",
+    )
+    parser.add_argument(
+        "--min_tracking_confidence",
+        type=float,
+        default=0.35,
+        help="MediaPipe minimum tracking confidence.",
+    )
+    parser.set_defaults(two_hands=None)
+    parser.set_defaults(enable_tts=True)
     return parser.parse_args()
 
 
@@ -152,6 +250,25 @@ def extract_two_hands_feature(results) -> np.ndarray | None:
 
 def feature_dim_for_mode(frame_dim: int, pool_mode: str) -> int:
     return frame_dim if pool_mode == "mean" else frame_dim * 3
+
+
+def infer_frame_dim_from_expected(expected_dim: int, pool_mode: str) -> int:
+    if pool_mode == "mean":
+        frame_dim = expected_dim
+    else:
+        if expected_dim % 3 != 0:
+            fail(
+                f"Model expects {expected_dim} dims, which is incompatible with seg3 pooling. "
+                "Expected feature dim should be divisible by 3."
+            )
+        frame_dim = expected_dim // 3
+
+    if frame_dim not in (42, 84):
+        fail(
+            f"Unsupported frame-level feature dim inferred from model: {frame_dim}. "
+            "Expected 42 (one hand) or 84 (two hands)."
+        )
+    return frame_dim
 
 
 def pool_sequence(seq: np.ndarray, pool_mode: str) -> np.ndarray:
@@ -251,15 +368,32 @@ def main() -> None:
         fail("--threshold must be in [0, 1].")
     if args.resize is not None and args.resize <= 0:
         fail("--resize must be > 0.")
+    if args.max_hands not in (1, 2):
+        fail("--max_hands must be 1 or 2.")
+    if args.display_width <= 0 or args.display_height <= 0:
+        fail("--display_width and --display_height must be > 0.")
+    if not (0.0 <= args.min_detection_confidence <= 1.0):
+        fail("--min_detection_confidence must be in [0, 1].")
+    if not (0.0 <= args.min_tracking_confidence <= 1.0):
+        fail("--min_tracking_confidence must be in [0, 1].")
+    if not args.voice_dir.is_absolute():
+        args.voice_dir = (REPO_ROOT / args.voice_dir).resolve()
 
     model = joblib.load(args.model)
-    frame_dim = 84 if args.two_hands else 42
-    expected_dim = infer_expected_dim(model, frame_dim_hint=frame_dim)
+    expected_dim = infer_expected_dim(model, frame_dim_hint=42)
     display_classes = load_display_classes(model, args.model)
     if not display_classes:
         fail("Model does not provide classes_ and label_classes.txt is not usable.")
 
     active_pool = args.pool
+    required_frame_dim = infer_frame_dim_from_expected(expected_dim, active_pool)
+    model_requires_two_hands = required_frame_dim == 84
+    if args.two_hands is None:
+        two_hands_mode = model_requires_two_hands
+    else:
+        two_hands_mode = bool(args.two_hands)
+
+    frame_dim = 84 if two_hands_mode else 42
     current_dim = feature_dim_for_mode(frame_dim, active_pool)
     if current_dim != expected_dim:
         fail(
@@ -276,21 +410,51 @@ def main() -> None:
     print(f"  min_frames: {args.min_frames}")
     print(f"  history: {args.history}")
     print(f"  threshold: {args.threshold:.2f}")
-    print(f"  two_hands: {args.two_hands}")
+    print(f"  two_hands: {two_hands_mode}")
+    print(f"  max_hands: {args.max_hands}")
+    print(f"  enable_emotion: {args.enable_emotion}")
+    print(f"  enable_tts: {args.enable_tts}")
+    print(f"  tts_voice: {args.tts_voice or 'default'}")
+    print(f"  voice_dir: {args.voice_dir}")
+    print(f"  resize_width: {args.resize}")
+    print(f"  display_size: {args.display_width}x{args.display_height}")
+
+    tracking_max_hands = args.max_hands
+    if two_hands_mode and tracking_max_hands < 2:
+        print("WARNING: two_hands mode requires max_hands=2. Overriding to 2.")
+        tracking_max_hands = 2
 
     hands = mp.solutions.hands.Hands(
         static_image_mode=False,
-        max_num_hands=2 if args.two_hands else 1,
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5,
+        max_num_hands=tracking_max_hands,
+        min_detection_confidence=args.min_detection_confidence,
+        min_tracking_confidence=args.min_tracking_confidence,
     )
+    face_mesh = None
+    if args.enable_emotion:
+        mp_face_mesh = mp.solutions.face_mesh
+        face_mesh = mp_face_mesh.FaceMesh(
+            static_image_mode=False,
+            max_num_faces=1,
+            refine_landmarks=False,
+        )
     draw = mp.solutions.drawing_utils
     hands_conn = mp.solutions.hands.HAND_CONNECTIONS
+    landmark_spec = draw.DrawingSpec(color=(0, 255, 255), thickness=2, circle_radius=5)
+    connection_spec = draw.DrawingSpec(color=(0, 255, 0), thickness=2, circle_radius=2)
 
     cap = cv2.VideoCapture(args.camera)
     if not cap.isOpened():
         hands.close()
+        if face_mesh is not None:
+            face_mesh.close()
         fail(f"Failed to open camera index {args.camera}")
+
+    window_name = "WLASL Realtime Sequence Pool"
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(window_name, args.display_width, args.display_height)
+    if args.fullscreen:
+        cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
     feat_buffer: deque[np.ndarray] = deque(maxlen=args.window)
     pred_history: deque[str] = deque(maxlen=args.history)
@@ -299,6 +463,14 @@ def main() -> None:
     latest_label = "UNKNOWN"
     majority_label = "UNKNOWN"
     latest_conf = 0.0
+    current_emotion = "neutral"
+    last_emotion_check_t = 0.0
+    emotion_interval = 1.0 / EMOTION_TARGET_FPS
+    last_face_landmarks = None
+    last_spoken_label = "UNKNOWN"
+    last_spoken_t = 0.0
+    stable_label = "UNKNOWN"
+    stable_count = 0
     frame_counter = 0
     status_box: dict[str, object] = {"text": "", "until": 0.0}
 
@@ -318,19 +490,49 @@ def main() -> None:
                     new_h = max(1, int(round(h * (new_w / float(w)))))
                     frame = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
-            if args.mirror:
-                frame = cv2.flip(frame, 1)
-
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # Keep model input on the original frame; mirror is for display only.
+            proc_frame = frame
+            rgb = cv2.cvtColor(proc_frame, cv2.COLOR_BGR2RGB)
             results = hands.process(rgb)
+            now_ts = time.time()
+            if args.enable_emotion and face_mesh is not None and (now_ts - last_emotion_check_t) >= emotion_interval:
+                face_result = face_mesh.process(rgb)
+                if face_result.multi_face_landmarks:
+                    lms = face_result.multi_face_landmarks[0].landmark
+                    h, w = proc_frame.shape[:2]
+                    current_emotion = compute_emotion_from_facemesh(lms, w, h)
+                    last_face_landmarks = lms
+                else:
+                    current_emotion = "neutral"
+                    last_face_landmarks = None
+                last_emotion_check_t = now_ts
 
-            if args.show_landmarks and results.multi_hand_landmarks:
+            show_landmarks = args.show_landmarks and not args.no_landmarks
+            if show_landmarks and results.multi_hand_landmarks:
                 for hand_lms in results.multi_hand_landmarks:
-                    draw.draw_landmarks(frame, hand_lms, hands_conn)
+                    draw.draw_landmarks(
+                        proc_frame,
+                        hand_lms,
+                        hands_conn,
+                        landmark_drawing_spec=landmark_spec,
+                        connection_drawing_spec=connection_spec,
+                    )
+            if args.enable_emotion and last_face_landmarks:
+                h, w = proc_frame.shape[:2]
+                for idx, lm in enumerate(last_face_landmarks):
+                    if idx % FACE_DRAW_STEP != 0:
+                        continue
+                    x = int(lm.x * w)
+                    y = int(lm.y * h)
+                    if 0 <= x < w and 0 <= y < h:
+                        cv2.circle(proc_frame, (x, y), 1, (255, 255, 0), -1)
+
+            display_frame = cv2.flip(proc_frame, 1) if args.mirror else proc_frame
 
             frame_feat = None
+            detected_hands = len(results.multi_hand_landmarks) if results.multi_hand_landmarks else 0
             if results.multi_hand_landmarks:
-                if args.two_hands:
+                if two_hands_mode:
                     frame_feat = extract_two_hands_feature(results)
                 else:
                     frame_feat = extract_one_hand_feature(results)
@@ -358,6 +560,28 @@ def main() -> None:
                 pred_history.append(latest_label)
                 majority_label = majority_vote(pred_history)
 
+            if majority_label == stable_label:
+                stable_count += 1
+            else:
+                stable_label = majority_label
+                stable_count = 1
+
+            if (
+                args.enable_tts
+                and stable_label != "UNKNOWN"
+                and stable_count >= SPEAK_STABLE_COUNT
+                and stable_label != last_spoken_label
+                and (now_ts - last_spoken_t) >= SPEAK_COOLDOWN_SEC
+            ):
+                speak_emotional(
+                    stable_label,
+                    current_emotion,
+                    voice=args.tts_voice,
+                    voice_dir=args.voice_dir,
+                )
+                last_spoken_label = stable_label
+                last_spoken_t = now_ts
+
             now = time.time()
             dt = max(1e-6, now - prev_t)
             prev_t = now
@@ -369,7 +593,7 @@ def main() -> None:
             hand_color = (0, 0, 255) if waiting_for_hand else (0, 200, 0)
 
             cv2.putText(
-                frame,
+                display_frame,
                 f"Label: {majority_label} (latest: {latest_label})",
                 (16, 32),
                 cv2.FONT_HERSHEY_SIMPLEX,
@@ -378,7 +602,7 @@ def main() -> None:
                 2,
             )
             cv2.putText(
-                frame,
+                display_frame,
                 f"Conf: {latest_conf:.2f}  FPS: {fps:.1f}",
                 (16, 60),
                 cv2.FONT_HERSHEY_SIMPLEX,
@@ -387,7 +611,7 @@ def main() -> None:
                 2,
             )
             cv2.putText(
-                frame,
+                display_frame,
                 f"Buffer: {len(feat_buffer)}/{args.window}  Min: {args.min_frames}",
                 (16, 86),
                 cv2.FONT_HERSHEY_SIMPLEX,
@@ -396,27 +620,40 @@ def main() -> None:
                 2,
             )
             cv2.putText(
-                frame,
-                f"Th: {threshold:.2f}  Pool: {active_pool}  Expected dims: {expected_dim}",
+                display_frame,
+                f"Th: {threshold:.2f}  Pool: {active_pool}  Expected dims: {expected_dim}  Hands: {detected_hands}",
                 (16, 112),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.6,
                 (255, 255, 255),
                 2,
             )
+            hand_y = 164 if args.enable_emotion else 138
+            help_y = 190 if args.enable_emotion else 164
+            status_y = 216 if args.enable_emotion else 190
+            if args.enable_emotion:
+                cv2.putText(
+                    display_frame,
+                    f"Emotion: {current_emotion}",
+                    (16, 138),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.65,
+                    (0, 255, 255),
+                    2,
+                )
             cv2.putText(
-                frame,
+                display_frame,
                 hand_text,
-                (16, 138),
+                (16, hand_y),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.65,
                 hand_color,
                 2,
             )
             cv2.putText(
-                frame,
-                "q quit | r reset | t/+ up | T/- down | 1 mean | 3 seg3",
-                (16, 164),
+                display_frame,
+                "q quit | r reset | t/+ up | T/- down",
+                (16, help_y),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.55,
                 (255, 255, 0),
@@ -425,16 +662,16 @@ def main() -> None:
 
             if time.time() < float(status_box["until"]):
                 cv2.putText(
-                    frame,
+                    display_frame,
                     str(status_box["text"]),
-                    (16, 190),
+                    (16, status_y),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.6,
                     (0, 180, 255),
                     2,
                 )
 
-            cv2.imshow("WLASL Realtime Sequence Pool", frame)
+            cv2.imshow(window_name, display_frame)
             key = cv2.waitKey(1) & 0xFF
 
             if key == ord("q"):
@@ -445,6 +682,11 @@ def main() -> None:
                 latest_label = "UNKNOWN"
                 majority_label = "UNKNOWN"
                 latest_conf = 0.0
+                current_emotion = "neutral"
+                stable_label = "UNKNOWN"
+                stable_count = 0
+                last_spoken_label = "UNKNOWN"
+                last_spoken_t = 0.0
                 set_status(status_box, "Buffers reset.")
             if key in (ord("t"), ord("=")):
                 threshold = min(0.99, threshold + 0.05)
@@ -452,30 +694,10 @@ def main() -> None:
             if key in (ord("T"), ord("-")):
                 threshold = max(0.0, threshold - 0.05)
                 set_status(status_box, f"Threshold: {threshold:.2f}")
-            if key == ord("1"):
-                new_pool = "mean"
-                new_dim = feature_dim_for_mode(frame_dim, new_pool)
-                if new_dim != expected_dim:
-                    set_status(
-                        status_box,
-                        f"Pool mean blocked: model expects {expected_dim}, mean gives {new_dim}.",
-                    )
-                else:
-                    active_pool = new_pool
-                    set_status(status_box, "Pool mode switched to mean.")
-            if key == ord("3"):
-                new_pool = "seg3"
-                new_dim = feature_dim_for_mode(frame_dim, new_pool)
-                if new_dim != expected_dim:
-                    set_status(
-                        status_box,
-                        f"Pool seg3 blocked: model expects {expected_dim}, seg3 gives {new_dim}.",
-                    )
-                else:
-                    active_pool = new_pool
-                    set_status(status_box, "Pool mode switched to seg3.")
     finally:
         hands.close()
+        if face_mesh is not None:
+            face_mesh.close()
         cap.release()
         cv2.destroyAllWindows()
 
@@ -485,3 +707,5 @@ if __name__ == "__main__":
 
 # Example command:
 # python scripts_words/realtime_sequence_pool.py --model models_words/rf_words_seg3.joblib --pool seg3 --window 60 --stride 5 --history 10 --threshold 0.6 --mirror
+# Enable emotion + emotional TTS:
+# python scripts_words/realtime_sequence_pool.py --model models_words/rf_words_seg3_2h.joblib --pool seg3 --mirror --enable_emotion

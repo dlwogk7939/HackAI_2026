@@ -1,58 +1,202 @@
-video_id,video_path,label_gloss,class_index,split,fps,frame_start,frame_end,bbox,signer_id,source
-27184,dataset/words/videos/27184.mp4,hello,402,train,25,1,-1,"[182, 41, 483, 400]",41,aslsearch
-27172,dataset/words/videos/27172.mp4,hello,402,test,25,1,-1,"[467, 0, 1583, 1080]",46,signschool
-27173,dataset/words/videos/27173.mp4,hello,402,train,25,1,-1,"[34, 11, 536, 480]",21,asldeafined
-27177,dataset/words/videos/27177.mp4,hello,402,val,25,1,-1,"[38, 0, 217, 192]",11,signingsavvy
-69404,dataset/words/videos/69404.mp4,my,566,train,25,1,-1,"[349, 35, 969, 712]",116,aslbrick
-37477,dataset/words/videos/37477.mp4,my,566,train,25,1,-1,"[170, 53, 548, 400]",12,aslsearch
-37469,dataset/words/videos/37469.mp4,my,566,val,25,1,-1,"[52, 0, 242, 240]",37,spreadthesign
-37470,dataset/words/videos/37470.mp4,my,566,train,25,1,-1,"[632, 40, 1527, 1064]",46,signschool
-37471,dataset/words/videos/37471.mp4,my,566,train,25,1,-1,"[120, 0, 502, 480]",13,asldeafined
-37473,dataset/words/videos/37473.mp4,my,566,val,25,1,-1,"[73, 15, 219, 192]",11,signingsavvy
-69405,dataset/words/videos/69405.mp4,name,164,test,25,1,-1,"[331, 37, 917, 720]",118,aslbrick
-37580,dataset/words/videos/37580.mp4,name,164,val,25,1,-1,"[23, 0, 272, 240]",56,spreadthesign
-37590,dataset/words/videos/37590.mp4,name,164,train,25,1,-1,"[213, 53, 573, 400]",12,aslsearch
-37581,dataset/words/videos/37581.mp4,name,164,train,25,1,-1,"[610, 67, 1575, 1080]",32,signschool
-37582,dataset/words/videos/37582.mp4,name,164,train,25,1,-1,"[154, 0, 534, 480]",13,asldeafined
-37585,dataset/words/videos/37585.mp4,name,164,train,25,1,-1,"[81, 15, 229, 192]",11,signingsavvy
-66048,dataset/words/videos/66048.mp4,j,1789,val,25,1,-1,"[200, 33, 524, 370]",96,aslsignbank
-31100,dataset/words/videos/31100.mp4,j,1789,train,25,1,-1,"[133, 33, 574, 480]",21,asldeafined
-31102,dataset/words/videos/31102.mp4,j,1789,train,25,1,-1,"[83, 5, 226, 192]",11,signingsavvy
-31104,dataset/words/videos/31104.mp4,j,1789,train,25,1,-1,"[176, 62, 550, 400]",12,aslsearch
-66047,dataset/words/videos/66047.mp4,i,1779,val,25,1,-1,"[159, 14, 481, 370]",90,aslsignbank
-28789,dataset/words/videos/28789.mp4,i,1779,train,25,1,-1,"[162, 30, 572, 480]",21,asldeafined
-28791,dataset/words/videos/28791.mp4,i,1779,train,25,1,-1,"[91, 8, 223, 192]",11,signingsavvy
-28794,dataset/words/videos/28794.mp4,i,1779,train,25,1,-1,"[163, 45, 491, 400]",41,aslsearch
-15941,dataset/words/videos/15941.mp4,develop,516,train,25,1,-1,"[197, 60, 548, 400]",12,aslsearch
-65472,dataset/words/videos/65472.mp4,develop,516,val,25,1,-1,"[165, 12, 494, 370]",102,aslsignbank
-65473,dataset/words/videos/65473.mp4,develop,516,train,25,1,-1,"[165, 16, 488, 370]",102,aslsignbank
-15933,dataset/words/videos/15933.mp4,develop,516,train,25,1,-1,"[77, 10, 241, 180]",19,elementalasl
-15934,dataset/words/videos/15934.mp4,develop,516,train,25,1,-1,"[77, 36, 241, 240]",2,spreadthesign
-15935,dataset/words/videos/15935.mp4,develop,516,train,25,1,-1,"[605, 51, 1568, 1079]",4,signschool
-15936,dataset/words/videos/15936.mp4,develop,516,val,25,1,-1,"[120, 29, 523, 480]",59,asldeafined
-15938,dataset/words/videos/15938.mp4,develop,516,test,25,1,-1,"[79, 12, 222, 192]",11,signingsavvy
-44837,dataset/words/videos/44837.mp4,program,749,train,25,1,-1,"[197, 54, 556, 400]",12,aslsearch
-66337,dataset/words/videos/66337.mp4,program,749,train,25,1,-1,"[171, 12, 475, 370]",101,aslsignbank
-44829,dataset/words/videos/44829.mp4,program,749,val,25,1,-1,"[429, 60, 828, 720]",38,startasl
-44830,dataset/words/videos/44830.mp4,program,749,train,25,1,-1,"[574, 70, 1418, 1080]",31,signschool
-44831,dataset/words/videos/44831.mp4,program,749,test,25,1,-1,"[121, 0, 563, 480]",13,asldeafined
-44833,dataset/words/videos/44833.mp4,program,749,train,25,1,-1,"[79, 13, 211, 192]",11,signingsavvy
-69377,dataset/words/videos/69377.mp4,in,715,train,25,1,-1,"[307, 37, 907, 720]",118,aslbrick
-29718,dataset/words/videos/29718.mp4,in,715,train,25,1,-1,"[38, 8, 251, 240]",0,spreadthesign
-29719,dataset/words/videos/29719.mp4,in,715,val,25,1,-1,"[210, 16, 527, 414]",36,startasl
-29720,dataset/words/videos/29720.mp4,in,715,train,25,1,-1,"[633, 102, 1382, 1080]",31,signschool
-29721,dataset/words/videos/29721.mp4,in,715,test,25,1,-1,"[79, 13, 545, 480]",21,asldeafined
-29723,dataset/words/videos/29723.mp4,in,715,train,25,1,-1,"[79, 16, 217, 192]",11,signingsavvy
-29726,dataset/words/videos/29726.mp4,in,715,val,25,1,-1,"[175, 54, 538, 400]",12,aslsearch
-66053,dataset/words/videos/66053.mp4,o,1840,val,25,1,-1,"[202, 34, 512, 370]",96,aslsignbank
-39553,dataset/words/videos/39553.mp4,o,1840,train,25,1,-1,"[174, 41, 582, 478]",21,asldeafined
-39555,dataset/words/videos/39555.mp4,o,1840,train,25,1,-1,"[83, 6, 220, 192]",11,signingsavvy
-39557,dataset/words/videos/39557.mp4,o,1840,train,25,1,-1,"[180, 54, 557, 400]",12,aslsearch
-66057,dataset/words/videos/66057.mp4,s,1917,val,25,1,-1,"[203, 35, 512, 370]",96,aslsignbank
-51426,dataset/words/videos/51426.mp4,s,1917,train,25,1,-1,"[136, 37, 575, 480]",21,asldeafined
-51428,dataset/words/videos/51428.mp4,s,1917,train,25,1,-1,"[83, 7, 220, 192]",11,signingsavvy
-51430,dataset/words/videos/51430.mp4,s,1917,train,25,1,-1,"[194, 48, 575, 400]",12,aslsearch
-66059,dataset/words/videos/66059.mp4,u,1980,val,25,1,-1,"[201, 30, 508, 370]",96,aslsignbank
-60358,dataset/words/videos/60358.mp4,u,1980,train,25,1,-1,"[143, 38, 580, 480]",21,asldeafined
-60360,dataset/words/videos/60360.mp4,u,1980,train,25,1,-1,"[85, 7, 219, 192]",11,signingsavvy
-60362,dataset/words/videos/60362.mp4,u,1980,train,25,1,-1,"[178, 50, 559, 400]",12,aslsearch
+video_id,video_path,label_gloss,class_index,split
+develop_001,dataset/words/training/develop/develop_001.mp4,develop,0,train
+develop_002,dataset/words/training/develop/develop_002.mp4,develop,0,train
+develop_003,dataset/words/training/develop/develop_003.mp4,develop,0,train
+develop_004,dataset/words/training/develop/develop_004.mp4,develop,0,train
+develop_005,dataset/words/training/develop/develop_005.mp4,develop,0,train
+develop_006,dataset/words/training/develop/develop_006.mp4,develop,0,train
+develop_007,dataset/words/training/develop/develop_007.mp4,develop,0,train
+develop_008,dataset/words/training/develop/develop_008.mp4,develop,0,train
+develop_009,dataset/words/training/develop/develop_009.mp4,develop,0,train
+develop_010,dataset/words/training/develop/develop_010.mp4,develop,0,train
+develop_011,dataset/words/training/develop/develop_011.mp4,develop,0,train
+develop_012,dataset/words/training/develop/develop_012.mp4,develop,0,train
+develop_013,dataset/words/training/develop/develop_013.mp4,develop,0,train
+develop_014,dataset/words/training/develop/develop_014.mp4,develop,0,train
+develop_015,dataset/words/training/develop/develop_015.mp4,develop,0,train
+develop_016,dataset/words/training/develop/develop_016.mp4,develop,0,train
+hello_001,dataset/words/training/hello/hello_001.mp4,hello,1,train
+hello_002,dataset/words/training/hello/hello_002.mp4,hello,1,train
+hello_003,dataset/words/training/hello/hello_003.mp4,hello,1,train
+hello_004,dataset/words/training/hello/hello_004.mp4,hello,1,train
+hello_005,dataset/words/training/hello/hello_005.mp4,hello,1,train
+hello_006,dataset/words/training/hello/hello_006.mp4,hello,1,train
+hello_007,dataset/words/training/hello/hello_007.mp4,hello,1,train
+hello_008,dataset/words/training/hello/hello_008.mp4,hello,1,train
+hello_009,dataset/words/training/hello/hello_009.mp4,hello,1,train
+hello_010,dataset/words/training/hello/hello_010.mp4,hello,1,train
+hello_011,dataset/words/training/hello/hello_011.mp4,hello,1,train
+hello_012,dataset/words/training/hello/hello_012.mp4,hello,1,train
+hello_013,dataset/words/training/hello/hello_013.mp4,hello,1,train
+hello_014,dataset/words/training/hello/hello_014.mp4,hello,1,train
+hello_015,dataset/words/training/hello/hello_015.mp4,hello,1,train
+hello_016,dataset/words/training/hello/hello_016.mp4,hello,1,train
+hello_017,dataset/words/training/hello/hello_017.mp4,hello,1,train
+hello_018,dataset/words/training/hello/hello_018.mp4,hello,1,train
+hello_019,dataset/words/training/hello/hello_019.mp4,hello,1,train
+hello_020,dataset/words/training/hello/hello_020.mp4,hello,1,train
+hello_021,dataset/words/training/hello/hello_021.mp4,hello,1,train
+hello_022,dataset/words/training/hello/hello_022.mp4,hello,1,train
+hello_023,dataset/words/training/hello/hello_023.mp4,hello,1,train
+i_001,dataset/words/training/i/i_001.mp4,i,2,train
+i_002,dataset/words/training/i/i_002.mp4,i,2,train
+i_003,dataset/words/training/i/i_003.mp4,i,2,train
+i_004,dataset/words/training/i/i_004.mp4,i,2,train
+i_005,dataset/words/training/i/i_005.mp4,i,2,train
+i_006,dataset/words/training/i/i_006.mp4,i,2,train
+i_007,dataset/words/training/i/i_007.mp4,i,2,train
+i_008,dataset/words/training/i/i_008.mp4,i,2,train
+i_009,dataset/words/training/i/i_009.mp4,i,2,train
+i_010,dataset/words/training/i/i_010.mp4,i,2,train
+i_011,dataset/words/training/i/i_011.mp4,i,2,train
+i_012,dataset/words/training/i/i_012.mp4,i,2,train
+i_013,dataset/words/training/i/i_013.mp4,i,2,train
+i_014,dataset/words/training/i/i_014.mp4,i,2,train
+i_015,dataset/words/training/i/i_015.mp4,i,2,train
+i_016,dataset/words/training/i/i_016.mp4,i,2,train
+i_017,dataset/words/training/i/i_017.mp4,i,2,train
+in_001,dataset/words/training/in/in_001.mp4,in,3,train
+in_002,dataset/words/training/in/in_002.mp4,in,3,train
+in_003,dataset/words/training/in/in_003.mp4,in,3,train
+in_004,dataset/words/training/in/in_004.mp4,in,3,train
+in_005,dataset/words/training/in/in_005.mp4,in,3,train
+in_006,dataset/words/training/in/in_006.mp4,in,3,train
+in_007,dataset/words/training/in/in_007.mp4,in,3,train
+in_008,dataset/words/training/in/in_008.mp4,in,3,train
+in_009,dataset/words/training/in/in_009.mp4,in,3,train
+in_010,dataset/words/training/in/in_010.mp4,in,3,train
+in_011,dataset/words/training/in/in_011.mp4,in,3,train
+in_012,dataset/words/training/in/in_012.mp4,in,3,train
+in_013,dataset/words/training/in/in_013.mp4,in,3,train
+in_014,dataset/words/training/in/in_014.mp4,in,3,train
+in_015,dataset/words/training/in/in_015.mp4,in,3,train
+in_016,dataset/words/training/in/in_016.mp4,in,3,train
+in_017,dataset/words/training/in/in_017.mp4,in,3,train
+in_018,dataset/words/training/in/in_018.mp4,in,3,train
+in_019,dataset/words/training/in/in_019.mp4,in,3,train
+in_020,dataset/words/training/in/in_020.mp4,in,3,train
+in_021,dataset/words/training/in/in_021.mp4,in,3,train
+in_022,dataset/words/training/in/in_022.mp4,in,3,train
+in_023,dataset/words/training/in/in_023.mp4,in,3,train
+j_001,dataset/words/training/j/j_001.mp4,j,4,train
+j_002,dataset/words/training/j/j_002.mp4,j,4,train
+j_003,dataset/words/training/j/j_003.mp4,j,4,train
+j_004,dataset/words/training/j/j_004.mp4,j,4,train
+j_005,dataset/words/training/j/j_005.mp4,j,4,train
+j_006,dataset/words/training/j/j_006.mp4,j,4,train
+j_007,dataset/words/training/j/j_007.mp4,j,4,train
+j_008,dataset/words/training/j/j_008.mp4,j,4,train
+j_009,dataset/words/training/j/j_009.mp4,j,4,train
+j_010,dataset/words/training/j/j_010.mp4,j,4,train
+j_011,dataset/words/training/j/j_011.mp4,j,4,train
+j_012,dataset/words/training/j/j_012.mp4,j,4,train
+j_013,dataset/words/training/j/j_013.mp4,j,4,train
+j_014,dataset/words/training/j/j_014.mp4,j,4,train
+j_015,dataset/words/training/j/j_015.mp4,j,4,train
+j_016,dataset/words/training/j/j_016.mp4,j,4,train
+j_017,dataset/words/training/j/j_017.mp4,j,4,train
+j_018,dataset/words/training/j/j_018.mp4,j,4,train
+j_019,dataset/words/training/j/j_019.mp4,j,4,train
+j_020,dataset/words/training/j/j_020.mp4,j,4,train
+j_021,dataset/words/training/j/j_021.mp4,j,4,train
+my_001,dataset/words/training/my/my_001.mp4,my,5,train
+my_002,dataset/words/training/my/my_002.mp4,my,5,train
+my_003,dataset/words/training/my/my_003.mp4,my,5,train
+my_004,dataset/words/training/my/my_004.mp4,my,5,train
+my_005,dataset/words/training/my/my_005.mp4,my,5,train
+my_006,dataset/words/training/my/my_006.mp4,my,5,train
+my_007,dataset/words/training/my/my_007.mp4,my,5,train
+my_008,dataset/words/training/my/my_008.mp4,my,5,train
+my_009,dataset/words/training/my/my_009.mp4,my,5,train
+my_010,dataset/words/training/my/my_010.mp4,my,5,train
+my_011,dataset/words/training/my/my_011.mp4,my,5,train
+my_012,dataset/words/training/my/my_012.mp4,my,5,train
+my_013,dataset/words/training/my/my_013.mp4,my,5,train
+my_014,dataset/words/training/my/my_014.mp4,my,5,train
+my_015,dataset/words/training/my/my_015.mp4,my,5,train
+name_001,dataset/words/training/name/name_001.mp4,name,6,train
+name_002,dataset/words/training/name/name_002.mp4,name,6,train
+name_003,dataset/words/training/name/name_003.mp4,name,6,train
+name_004,dataset/words/training/name/name_004.mp4,name,6,train
+name_005,dataset/words/training/name/name_005.mp4,name,6,train
+name_006,dataset/words/training/name/name_006.mp4,name,6,train
+name_007,dataset/words/training/name/name_007.mp4,name,6,train
+name_008,dataset/words/training/name/name_008.mp4,name,6,train
+name_009,dataset/words/training/name/name_009.mp4,name,6,train
+name_010,dataset/words/training/name/name_010.mp4,name,6,train
+name_011,dataset/words/training/name/name_011.mp4,name,6,train
+name_012,dataset/words/training/name/name_012.mp4,name,6,train
+name_013,dataset/words/training/name/name_013.mp4,name,6,train
+name_014,dataset/words/training/name/name_014.mp4,name,6,train
+name_015,dataset/words/training/name/name_015.mp4,name,6,train
+name_016,dataset/words/training/name/name_016.mp4,name,6,train
+name_017,dataset/words/training/name/name_017.mp4,name,6,train
+name_018,dataset/words/training/name/name_018.mp4,name,6,train
+o_001,dataset/words/training/o/o_001.mp4,o,7,train
+o_002,dataset/words/training/o/o_002.mp4,o,7,train
+o_003,dataset/words/training/o/o_003.mp4,o,7,train
+o_004,dataset/words/training/o/o_004.mp4,o,7,train
+o_005,dataset/words/training/o/o_005.mp4,o,7,train
+o_006,dataset/words/training/o/o_006.mp4,o,7,train
+o_007,dataset/words/training/o/o_007.mp4,o,7,train
+o_008,dataset/words/training/o/o_008.mp4,o,7,train
+o_009,dataset/words/training/o/o_009.mp4,o,7,train
+o_010,dataset/words/training/o/o_010.mp4,o,7,train
+o_011,dataset/words/training/o/o_011.mp4,o,7,train
+o_012,dataset/words/training/o/o_012.mp4,o,7,train
+o_013,dataset/words/training/o/o_013.mp4,o,7,train
+o_014,dataset/words/training/o/o_014.mp4,o,7,train
+o_015,dataset/words/training/o/o_015.mp4,o,7,train
+o_016,dataset/words/training/o/o_016.mp4,o,7,train
+program_001,dataset/words/training/program/program_001.mp4,program,8,train
+program_002,dataset/words/training/program/program_002.mp4,program,8,train
+program_003,dataset/words/training/program/program_003.mp4,program,8,train
+program_004,dataset/words/training/program/program_004.mp4,program,8,train
+program_005,dataset/words/training/program/program_005.mp4,program,8,train
+program_006,dataset/words/training/program/program_006.mp4,program,8,train
+program_007,dataset/words/training/program/program_007.mp4,program,8,train
+program_008,dataset/words/training/program/program_008.mp4,program,8,train
+program_009,dataset/words/training/program/program_009.mp4,program,8,train
+program_010,dataset/words/training/program/program_010.mp4,program,8,train
+program_011,dataset/words/training/program/program_011.mp4,program,8,train
+program_012,dataset/words/training/program/program_012.mp4,program,8,train
+program_013,dataset/words/training/program/program_013.mp4,program,8,train
+program_014,dataset/words/training/program/program_014.mp4,program,8,train
+program_015,dataset/words/training/program/program_015.mp4,program,8,train
+program_016,dataset/words/training/program/program_016.mp4,program,8,train
+program_017,dataset/words/training/program/program_017.mp4,program,8,train
+program_018,dataset/words/training/program/program_018.mp4,program,8,train
+s_001,dataset/words/training/s/s_001.mp4,s,9,train
+s_002,dataset/words/training/s/s_002.mp4,s,9,train
+s_003,dataset/words/training/s/s_003.mp4,s,9,train
+s_004,dataset/words/training/s/s_004.mp4,s,9,train
+s_005,dataset/words/training/s/s_005.mp4,s,9,train
+s_006,dataset/words/training/s/s_006.mp4,s,9,train
+s_007,dataset/words/training/s/s_007.mp4,s,9,train
+s_008,dataset/words/training/s/s_008.mp4,s,9,train
+s_009,dataset/words/training/s/s_009.mp4,s,9,train
+s_010,dataset/words/training/s/s_010.mp4,s,9,train
+s_011,dataset/words/training/s/s_011.mp4,s,9,train
+s_012,dataset/words/training/s/s_012.mp4,s,9,train
+s_013,dataset/words/training/s/s_013.mp4,s,9,train
+s_014,dataset/words/training/s/s_014.mp4,s,9,train
+s_015,dataset/words/training/s/s_015.mp4,s,9,train
+s_016,dataset/words/training/s/s_016.mp4,s,9,train
+u_001,dataset/words/training/u/u_001.mp4,u,10,train
+u_002,dataset/words/training/u/u_002.mp4,u,10,train
+u_003,dataset/words/training/u/u_003.mp4,u,10,train
+u_004,dataset/words/training/u/u_004.mp4,u,10,train
+u_005,dataset/words/training/u/u_005.mp4,u,10,train
+u_006,dataset/words/training/u/u_006.mp4,u,10,train
+u_007,dataset/words/training/u/u_007.mp4,u,10,train
+u_008,dataset/words/training/u/u_008.mp4,u,10,train
+u_009,dataset/words/training/u/u_009.mp4,u,10,train
+u_010,dataset/words/training/u/u_010.mp4,u,10,train
+u_011,dataset/words/training/u/u_011.mp4,u,10,train
+u_012,dataset/words/training/u/u_012.mp4,u,10,train
+u_013,dataset/words/training/u/u_013.mp4,u,10,train
+u_014,dataset/words/training/u/u_014.mp4,u,10,train
+u_015,dataset/words/training/u/u_015.mp4,u,10,train
+u_016,dataset/words/training/u/u_016.mp4,u,10,train
+u_017,dataset/words/training/u/u_017.mp4,u,10,train
+u_018,dataset/words/training/u/u_018.mp4,u,10,train
