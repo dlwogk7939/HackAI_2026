@@ -1,6 +1,6 @@
-# A for the W - HackAI_2026
+# SignEcho
 
-Real-time sign word recognition from webcam/video using MediaPipe hand landmarks + Random Forest, with optional face emotion and emotional TTS.
+Real-time sign word recognition from webcam/video using MediaPipe hand landmarks + Random Forest, with face emotion and emotional TTS.
 
 ## Team
 - Team Name: `A for the W`
