@@ -1,0 +1,6 @@
+#!/Users/dlwogk7939/Documents/GitHub/HackAI_2026/open_ended/venv311/bin/python
+import sys
+from fontTools.__main__ import main
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(main())
